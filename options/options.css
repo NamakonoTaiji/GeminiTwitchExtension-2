@@ -1,0 +1,258 @@
+/* 全体のリセットとベーススタイル */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+}
+
+/* ヘッダースタイル */
+header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+header h1 {
+  color: #6441a5; /* Twitchカラー */
+  margin-bottom: 10px;
+}
+
+header p {
+  color: #666;
+}
+
+.version-info {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 10px;
+}
+
+/* セクションスタイル */
+.settings-section {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.settings-section h2 {
+  font-size: 1.3rem;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+/* フォームスタイル */
+.form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+label {
+  font-weight: 500;
+  margin-right: 10px;
+  min-width: 150px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select {
+  flex: 1;
+  min-width: 200px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* フォーカススタイル */
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #6441a5;
+  box-shadow: 0 0 0 2px rgba(100, 65, 165, 0.2);
+}
+
+input[type="color"] {
+  width: 50px;
+  height: 30px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.unit {
+  margin-left: 10px;
+  color: #666;
+}
+
+button {
+  padding: 8px 16px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  margin-left: 10px;
+}
+
+button:hover {
+  background-color: #e5e5e5;
+}
+
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.primary-button {
+  background-color: #6441a5; /* Twitchカラー */
+  color: white;
+  border: none;
+}
+
+.primary-button:hover {
+  background-color: #7d5bbe;
+}
+
+.primary-button:focus {
+  box-shadow: 0 0 0 2px rgba(100, 65, 165, 0.3);
+}
+
+/* ステータスメッセージ */
+.status-message {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  min-height: 20px;
+}
+
+.status-message.success {
+  background-color: #e7f7e7;
+  color: #2e7d32;
+}
+
+.status-message.error {
+  background-color: #fdedee;
+  color: #d32f2f;
+}
+
+.status-message.info {
+  background-color: #e3f2fd;
+  color: #0277bd;
+}
+
+/* ヘルプテキスト */
+.help-text {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 5px;
+}
+
+.help-text a {
+  color: #6441a5;
+  text-decoration: none;
+}
+
+.help-text a:hover {
+  text-decoration: underline;
+}
+
+/* チェックボックスグループ */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  min-width: 120px;
+}
+
+.checkbox-item label {
+  min-width: auto;
+  margin-left: 5px;
+}
+
+/* 表示/非表示 */
+.hidden {
+  display: none;
+}
+
+/* フッタースタイル */
+footer {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 600px) {
+  .container {
+    padding: 15px;
+  }
+  
+  .form-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  label {
+    margin-bottom: 5px;
+  }
+  
+  input[type="text"],
+  input[type="password"],
+  input[type="number"],
+  select {
+    width: 100%;
+    min-width: auto;
+    margin-bottom: 5px;
+  }
+  
+  button {
+    margin-left: 0;
+    margin-top: 5px;
+  }
+  
+  .checkbox-group {
+    width: 100%;
+  }
+  
+  .checkbox-item {
+    min-width: 100%;
+  }
+}

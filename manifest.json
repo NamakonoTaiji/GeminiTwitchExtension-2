@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Gemini Twitch Translator2",
+  "version": "0.1.0",
+  "description": "TwitchのチャットメッセージをリアルタイムでGoogle Gemini APIを使用して翻訳します。",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.twitch.tv/*"
+      ],
+      "js": [
+        "content/content_loader.js"
+      ]
+    }
+  ],
+  "options_page": "options/options.html",
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.twitch.tv/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "tests/*",
+        "utils/*",
+        "background/modules/*/*",
+        "shared/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

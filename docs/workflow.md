@@ -311,7 +311,7 @@
 ## リファクタリング後のモジュール間関係
 
 ```
-                     ┌────────────────── [shared/constants.js] ───────────────────┐
+                     ┌────────────────── [shared/constant.js] ───────────────────┐
                      │                             ↑                              │
                      ↓                             │                              ↓
 [popup/popup.js] → [shared/messaging.js] ← [background/background.js] → [content/content_loader.js]

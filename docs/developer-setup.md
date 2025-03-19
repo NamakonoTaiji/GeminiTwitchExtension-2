@@ -7,7 +7,7 @@
 以下のツールとアカウントが必要です：
 
 - **Git**: バージョン管理
-- **Node.js**: 最新のLTS版
+- **Node.js**: 最新の LTS 版
 - **npm** または **yarn**: パッケージ管理
 - **Google Cloud Platform アカウント**: Gemini API キー取得用
 - **Chrome ブラウザ**: 拡張機能の開発とテスト用
@@ -48,7 +48,7 @@ yarn
 ### 3.3 環境変数の設定
 
 1. リポジトリのルートディレクトリに `.env` ファイルを作成
-2. 以下の内容を追加（APIキーを自分のものに置き換え）
+2. 以下の内容を追加（API キーを自分のものに置き換え）
 
 ```
 GEMINI_API_KEY=your_api_key_here
@@ -100,7 +100,7 @@ gemini-twitch-translator/
 │   ├── content_loader.js   # メインエントリーポイント
 │   └── modules/            # コンテンツのモジュール
 ├── shared/                 # 共有モジュール
-│   ├── constants.js        # 定数定義
+│   ├── constant.js        # 定数定義
 │   └── ...                 # その他の共有機能
 ├── utils/                  # ユーティリティモジュール
 ├── popup/                  # ポップアップUI
@@ -147,6 +147,7 @@ gemini-twitch-translator/
 ```
 
 例：
+
 ```
 [ContentScript] チャットメッセージ検出ロジックを改善
 
@@ -162,7 +163,7 @@ gemini-twitch-translator/
 ### 7.1 コンテンツスクリプトのデバッグ
 
 1. Twitch ページを開く
-2. Chrome DevTools を開く（F12 または右クリック→「検証」）
+2. Chrome DevTools を開く（F12 または右クリック →「検証」）
 3. 「Sources」タブで、`content_scripts` → `content_loader.js` を探す
 4. ブレークポイントを設定してデバッグ
 
@@ -191,7 +192,7 @@ gemini-twitch-translator/
 1. 拡張機能を Twitch ページで有効化
 2. チャットでの翻訳機能をテスト
 3. 設定の変更と効果を確認
-4. エラー処理をテスト（APIキーの無効化など）
+4. エラー処理をテスト（API キーの無効化など）
 
 ### 8.2 自動テスト
 
@@ -203,7 +204,7 @@ gemini-twitch-translator/
 
 - ES Modules を使用
 - async/await を優先して使用
-- 型注釈にJSDocを使用
+- 型注釈に JSDoc を使用
 - 短い関数と明確な責務分割
 
 ### 9.2 命名規則
@@ -215,9 +216,9 @@ gemini-twitch-translator/
 
 ### 9.3 コメント
 
-- 公開API：JSDocスタイルのコメント
+- 公開 API：JSDoc スタイルのコメント
 - 複雑なロジック：「なぜ」それを行うのかを説明するコメント
-- TODOコメント：改善点や将来の変更点
+- TODO コメント：改善点や将来の変更点
 
 ## 10. 貢献ガイドライン
 
@@ -236,24 +237,27 @@ gemini-twitch-translator/
 ### 11.1 よくある問題
 
 #### 拡張機能が読み込まれない
+
 - manifest.json の構文エラーを確認
 - コンソールエラーを確認
 - 拡張機能を更新または再インストール
 
 #### 翻訳が機能しない
-- APIキーが正しく設定されているか確認
+
+- API キーが正しく設定されているか確認
 - バックグラウンドコンソールでエラーを確認
 - ネットワーク接続を確認
 
 #### コンテキスト無効化エラー
-- Service Workerの制約に注意
+
+- Service Worker の制約に注意
 - 長期実行コードをバックグラウンドスクリプトに移動
 - 状態の保存と復元メカニズムを使用
 
 ### 11.2 サポートリソース
 
 - プロジェクトの課題トラッカー
-- Chrome拡張機能開発ドキュメント
+- Chrome 拡張機能開発ドキュメント
 - Gemini API ドキュメント
 
 ## 12. リリースプロセス

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini Twitch Translator</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Gemini Twitch Translator</h1>
+      <div class="logo">
+        <img src="../icons/icon48.png" alt="Gemini Twitch Translator">
+      </div>
+    </header>
+
+    <main>
+      <div class="status-container">
+        <div class="status-label">ステータス:</div>
+        <div id="status" class="status-value">無効</div>
+      </div>
+
+      <div class="toggle-container">
+        <label class="toggle">
+          <input type="checkbox" id="translationToggle">
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label">翻訳を有効化</span>
+      </div>
+
+      <div class="quick-language-container">
+        <label for="targetLanguage">翻訳言語:</label>
+        <select id="targetLanguage">
+          <option value="ja">日本語</option>
+          <option value="en">英語</option>
+          <option value="ko">韓国語</option>
+          <option value="zh">中国語</option>
+          <option value="es">スペイン語</option>
+          <option value="fr">フランス語</option>
+          <option value="de">ドイツ語</option>
+        </select>
+      </div>
+
+      <div class="api-key-status">
+        <div class="api-key-label">API キー状態:</div>
+        <div id="apiKeyStatus" class="api-key-value">未設定</div>
+      </div>
+    </main>
+
+    <footer>
+      <button id="optionsBtn" class="btn">詳細設定</button>
+      <div class="version">v0.1.0</div>
+    </footer>
+  </div>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>

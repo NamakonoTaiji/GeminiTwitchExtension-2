@@ -2,7 +2,7 @@
 
 ## 1. システム概要
 
-Gemini Twitch Translatorは、Twitchのライブチャットをリアルタイムで監視し、Gemini AIを用いて翻訳するChrome拡張機能です。本ドキュメントでは、拡張機能の内部アーキテクチャと各コンポーネントの関係性を詳細に説明します。
+Gemini Twitch Translator は、Twitch のライブチャットをリアルタイムで監視し、Gemini AI を用いて翻訳する Chrome 拡張機能です。本ドキュメントでは、拡張機能の内部アーキテクチャと各コンポーネントの関係性を詳細に説明します。
 
 ## 2. 全体アーキテクチャ
 
@@ -34,8 +34,8 @@ Gemini Twitch Translatorは、Twitchのライブチャットをリアルタイ�
 
 1. **プレゼンテーション層**: ユーザーインターフェース（ポップアップ、オプションページ）
 2. **ビジネスロジック層**: 翻訳処理、言語判定、キャッシュ管理（バックグラウンドスクリプト）
-3. **データアクセス層**: API通信、ストレージ操作（バックグラウンドスクリプト）
-4. **インテグレーション層**: DOM操作、イベント処理（コンテンツスクリプト）
+3. **データアクセス層**: API 通信、ストレージ操作（バックグラウンドスクリプト）
+4. **インテグレーション層**: DOM 操作、イベント処理（コンテンツスクリプト）
 
 ## 3. モジュール構造
 
@@ -76,7 +76,7 @@ gemini-twitch-translator/
 │   ├── popup.html          # ポップアップのHTML
 │   └── popup.js            # ポップアップのスクリプト
 ├── shared/                 # 共有モジュール
-│   ├── constants.js        # 共通定数
+│   ├── constant.js        # 共通定数
 │   ├── messaging.js        # メッセージング共通処理
 │   ├── settingsManager.js  # 設定管理共通処理
 │   └── ui/                 # UI共通処理
@@ -108,7 +108,7 @@ gemini-twitch-translator/
 
 ### 4.1 バックグラウンドスクリプト (background.js)
 
-バックグラウンドスクリプトはService Workerとして実行され、主に以下の責務を持ちます：
+バックグラウンドスクリプトは Service Worker として実行され、主に以下の責務を持ちます：
 
 - メッセージハンドラの登録と管理
 - 各モジュールの初期化
@@ -118,12 +118,12 @@ gemini-twitch-translator/
 
 ```javascript
 // background.js の簡略構造
-import { initSettings, getSettings } from './modules/settings.js';
-import { translateText, testApiKey } from './modules/translator.js';
-import { initCache } from './modules/cache.js';
-import { initStats } from './modules/stats.js';
-import { initRequestQueue } from './modules/requestQueue.js';
-import { isStreamPage } from './modules/urlUtils.js';
+import { initSettings, getSettings } from "./modules/settings.js";
+import { translateText, testApiKey } from "./modules/translator.js";
+import { initCache } from "./modules/cache.js";
+import { initStats } from "./modules/stats.js";
+import { initRequestQueue } from "./modules/requestQueue.js";
+import { isStreamPage } from "./modules/urlUtils.js";
 
 // 初期化
 async function initialize() {
@@ -131,17 +131,17 @@ async function initialize() {
   await initCache();
   await initStats();
   initRequestQueue();
-  
-  console.log('Twitch Gemini Translator: バックグラウンドスクリプト初期化完了');
+
+  console.log("Twitch Gemini Translator: バックグラウンドスクリプト初期化完了");
 }
 
 // メッセージハンドラ
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.action) {
-    case 'translateMessage':
+    case "translateMessage":
       handleTranslateMessage(message, sendResponse);
       break;
-    case 'getSettings':
+    case "getSettings":
       sendResponse({ success: true, settings: getSettings() });
       break;
     // その他のハンドラ...
@@ -155,22 +155,23 @@ initialize();
 
 ### 4.2 翻訳モジュール (translator.js)
 
-Gemini APIとの通信と翻訳処理を担当します：
+Gemini API との通信と翻訳処理を担当します：
 
 - 翻訳用プロンプトの構築
-- Gemini APIへのリクエスト送信
+- Gemini API へのリクエスト送信
 - レスポンスの解析と翻訳テキストの抽出
 - エラーハンドリング
-- APIキーの検証
+- API キーの検証
 
 ```javascript
 // translator.js の簡略構造
-import { getSettings } from './settings.js';
-import { incrementApiRequests, incrementErrors } from './stats.js';
-import { getCachedTranslation, cacheTranslation } from './cache.js';
+import { getSettings } from "./settings.js";
+import { incrementApiRequests, incrementErrors } from "./stats.js";
+import { getCachedTranslation, cacheTranslation } from "./cache.js";
 
 // Gemini API関連の定数
-const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models/";
+const GEMINI_API_BASE =
+  "https://generativelanguage.googleapis.com/v1beta/models/";
 const GEMINI_API_GENERATE = ":generateContent";
 
 // 翻訳用プロンプトテンプレート
@@ -183,27 +184,31 @@ export async function translateText(text, options = {}) {
   if (cachedResult) {
     return cachedResult;
   }
-  
+
   // 設定を取得
   const settings = getSettings();
-  
+
   // APIキーの確認
   if (!settings.apiKey) {
     return { success: false, error: "Gemini APIキーが設定されていません" };
   }
-  
+
   // 統計を更新
   incrementApiRequests(text.length);
-  
+
   try {
     // Gemini APIで翻訳
-    const result = await translateWithGeminiAPI(text, settings.apiKey, options.sourceLanguage);
-    
+    const result = await translateWithGeminiAPI(
+      text,
+      settings.apiKey,
+      options.sourceLanguage
+    );
+
     // キャッシュに保存
     if (result.success) {
       cacheTranslation(text, options.sourceLanguage, result);
     }
-    
+
     return result;
   } catch (error) {
     incrementErrors();
@@ -216,13 +221,13 @@ export async function translateText(text, options = {}) {
 
 ### 4.3 コンテンツスクリプト (content_loader.js)
 
-Twitchページに挿入され、以下の処理を行います：
+Twitch ページに挿入され、以下の処理を行います：
 
-- DOMの監視とチャットメッセージの検出
+- DOM の監視とチャットメッセージの検出
 - メッセージの言語判定
 - バックグラウンドスクリプトへの翻訳リクエスト送信
 - 翻訳結果の表示
-- URL変更の検出
+- URL 変更の検出
 
 ```javascript
 // content_loader.js の簡略構造
@@ -247,21 +252,21 @@ async function initializeExtension() {
     if (response && response.success) {
       appState.settings = { ...appState.settings, ...response.settings };
     }
-    
+
     // URL監視を初期化
     initUrlMonitor({
       onUrlChanged: handleUrlChanged,
       debug: appState.debugMode,
       pollingFrequency: 1000
     });
-    
+
     // チャット監視を開始
     if (appState.enabled) {
       startChatObserver();
     }
-    
+
     appState.initialized = true;
-    
+
     return true;
   } catch (error) {
     console.error("初期化エラー:", error);
@@ -273,24 +278,24 @@ async function initializeExtension() {
 async function processMessage(messageElement) {
   // メッセージIDの取得
   const messageId = /* ID取得ロジック */;
-  
+
   // 既に処理中のメッセージをスキップ
   if (appState.processingMessages.has(messageId)) {
     return;
   }
-  
+
   // 処理中としてマーク
   appState.processingMessages.add(messageId);
-  
+
   try {
     // テキスト抽出
     const messageText = extractMessageText(messageElement);
-    
+
     // 翻訳リクエスト
     const response = await sendMessageToBackground("translateMessage", {
       message: messageText
     });
-    
+
     if (response && response.success) {
       // 翻訳を表示
       displayTranslation(messageElement, response.translation, {
@@ -301,7 +306,7 @@ async function processMessage(messageElement) {
   } catch (error) {
     console.error("メッセージ処理エラー:", error);
   }
-  
+
   // 処理完了
   appState.processingMessages.delete(messageId);
 }
@@ -323,20 +328,20 @@ initializeExtension();
 // settings.js の簡略構造
 // デフォルト設定
 const DEFAULT_SETTINGS = {
-  apiKey: '',
+  apiKey: "",
   enabled: false,
-  geminiModel: 'gemini-2.0-flash-lite',
-  translationMode: 'selective',
-  displayPrefix: '🇯🇵',
-  textColor: '#9b9b9b',
-  accentColor: '#4db6ac',
-  fontSize: 'medium',
+  geminiModel: "gemini-2.0-flash-lite",
+  translationMode: "selective",
+  displayPrefix: "🇯🇵",
+  textColor: "#9b9b9b",
+  accentColor: "#4db6ac",
+  fontSize: "medium",
   useCache: true,
   maxCacheAge: 24,
   autoToggle: true,
   processExistingMessages: false,
   requestDelay: 100,
-  debugMode: false
+  debugMode: false,
 };
 
 // 現在の設定
@@ -349,7 +354,7 @@ export async function initSettings() {
     currentSettings = { ...DEFAULT_SETTINGS, ...storedSettings };
     return true;
   } catch (error) {
-    console.error('設定の初期化エラー:', error);
+    console.error("設定の初期化エラー:", error);
     return false;
   }
 }
@@ -364,19 +369,19 @@ export async function saveSettings(newSettings) {
   try {
     // 古い設定をバックアップ
     const oldSettings = { ...currentSettings };
-    
+
     // 設定を更新
     currentSettings = { ...currentSettings, ...newSettings };
-    
+
     // Chromeストレージに保存
     await chrome.storage.sync.set(currentSettings);
-    
+
     // 変更を通知
     notifySettingsChanged(oldSettings, currentSettings);
-    
+
     return true;
   } catch (error) {
-    console.error('設定の保存エラー:', error);
+    console.error("設定の保存エラー:", error);
     return false;
   }
 }
@@ -384,24 +389,24 @@ export async function saveSettings(newSettings) {
 // 他の関数...
 ```
 
-### 4.5 URL監視モジュール (urlMonitor.js)
+### 4.5 URL 監視モジュール (urlMonitor.js)
 
-Twitchページの変更を検知するためのモジュールです：
+Twitch ページの変更を検知するためのモジュールです：
 
-- History APIの変更検出
-- popstateイベントリスナー
-- 定期的なURLチェック
-- URLタイプの判別
+- History API の変更検出
+- popstate イベントリスナー
+- 定期的な URL チェック
+- URL タイプの判別
 
 ```javascript
 // urlMonitor.js の簡略構造
 let config = {
   onUrlChanged: () => {},
   debug: false,
-  pollingFrequency: 2000
+  pollingFrequency: 2000,
 };
 
-let currentUrl = '';
+let currentUrl = "";
 let isMonitoring = false;
 let pollingInterval = null;
 
@@ -409,26 +414,26 @@ let pollingInterval = null;
 export function initUrlMonitor(options = {}) {
   // 設定をマージ
   config = { ...config, ...options };
-  
+
   // 現在のURLを記録
   currentUrl = window.location.href;
-  
+
   // History APIをオーバーライド
   overrideHistoryMethods();
-  
+
   // popstateイベントリスナーを登録
   setupPopstateListener();
-  
+
   // 定期的なポーリングを開始
   startUrlPolling();
-  
+
   isMonitoring = true;
-  
+
   // デバッグログ
   if (config.debug) {
     console.log(`URL監視を開始: ${currentUrl}`);
   }
-  
+
   return true;
 }
 
@@ -436,24 +441,24 @@ export function initUrlMonitor(options = {}) {
 function overrideHistoryMethods() {
   const originalPushState = history.pushState;
   const originalReplaceState = history.replaceState;
-  
+
   // pushStateをオーバーライド
-  history.pushState = function() {
+  history.pushState = function () {
     originalPushState.apply(this, arguments);
-    handleUrlChange(window.location.href, 'pushState');
+    handleUrlChange(window.location.href, "pushState");
   };
-  
+
   // replaceStateをオーバーライド
-  history.replaceState = function() {
+  history.replaceState = function () {
     originalReplaceState.apply(this, arguments);
-    handleUrlChange(window.location.href, 'replaceState');
+    handleUrlChange(window.location.href, "replaceState");
   };
 }
 
 // popstateイベントリスナー
 function setupPopstateListener() {
-  window.addEventListener('popstate', () => {
-    handleUrlChange(window.location.href, 'popstate');
+  window.addEventListener("popstate", () => {
+    handleUrlChange(window.location.href, "popstate");
   });
 }
 
@@ -498,7 +503,7 @@ function setupPopstateListener() {
                                           [監視の再設定]
 ```
 
-### 5.3 URL変更のデータフロー
+### 5.3 URL 変更のデータフロー
 
 ```
 [ユーザー操作] → [Twitch内ページ移動] → [URL変更検出]
@@ -540,11 +545,11 @@ function setupPopstateListener() {
 
 ### 7.1 エラーの種類
 
-1. **ネットワークエラー**: API通信時の接続問題
-2. **認証エラー**: APIキーの問題
-3. **レート制限エラー**: API制限超過
+1. **ネットワークエラー**: API 通信時の接続問題
+2. **認証エラー**: API キーの問題
+3. **レート制限エラー**: API 制限超過
 4. **パースエラー**: データ解析の問題
-5. **DOM操作エラー**: 要素の取得や操作に関する問題
+5. **DOM 操作エラー**: 要素の取得や操作に関する問題
 6. **コンテキスト無効化エラー**: 拡張機能のコンテキスト無効化
 7. **設定エラー**: 設定の読み込みや保存の問題
 
@@ -588,10 +593,10 @@ function setupPopstateListener() {
 
 - メモリ使用量の削減
 - リクエスト頻度の最適化
-- DOM操作の効率化
+- DOM 操作の効率化
 
 ## 9. まとめ
 
-Gemini Twitch Translatorは、モジュール化された設計と明確な責務分離により、保守性と拡張性を重視したアーキテクチャを採用しています。コンポーネント間の疎結合を維持しつつ、共通機能を共有モジュールとして抽出することで、コードの重複を最小限に抑えています。
+Gemini Twitch Translator は、モジュール化された設計と明確な責務分離により、保守性と拡張性を重視したアーキテクチャを採用しています。コンポーネント間の疎結合を維持しつつ、共通機能を共有モジュールとして抽出することで、コードの重複を最小限に抑えています。
 
 今後のリファクタリングでは、コードの一貫性をさらに向上させ、型安全性を強化することで、より堅牢で維持しやすいコードベースを目指します。

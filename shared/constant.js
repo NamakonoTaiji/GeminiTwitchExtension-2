@@ -34,6 +34,7 @@ const TRANSLATION_MODE = {
 // ストレージキー
 const STORAGE_KEYS = {
   API_KEY: "api_key",
+  API_KEY_SET: "api_key_set",
   EXTENSION_STATE: "extension_state",
   TRANSLATION_MODE: "translation_mode",
   TARGET_LANGUAGE: "target_language",
@@ -62,6 +63,7 @@ const DEFAULT_SETTINGS = {
     maxSize: 1000,
     expirationTime: 24 * 60 * 60 * 1000, // 24時間（ミリ秒）
   },
+  [STORAGE_KEYS.API_KEY_SET]: false,
 };
 
 // URLパターン

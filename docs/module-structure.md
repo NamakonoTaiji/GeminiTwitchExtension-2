@@ -2,31 +2,33 @@
 
 ## 1. モジュール設計の目的
 
-本文書では、Gemini Twitch Translatorの各モジュールの役割、責務、およびインターフェースを明確にします。モジュール間の依存関係を最小限に抑え、高い保守性と拡張性を実現するために、各モジュールの詳細な設計を記述します。
+本文書では、Gemini Twitch Translator の各モジュールの役割、責務、およびインターフェースを明確にします。モジュール間の依存関係を最小限に抑え、高い保守性と拡張性を実現するために、各モジュールの詳細な設計を記述します。
 
 ## 2. モジュール概要
 
 拡張機能のコードベースは以下の主要なモジュールカテゴリに分類されます：
 
-1. **バックグラウンドモジュール**: Service Workerとして実行される長期稼働コンポーネント
-2. **コンテンツモジュール**: Twitchページに挿入されるDOM操作コンポーネント
+1. **バックグラウンドモジュール**: Service Worker として実行される長期稼働コンポーネント
+2. **コンテンツモジュール**: Twitch ページに挿入される DOM 操作コンポーネント
 3. **共有モジュール**: 複数のコンポーネント間で共有される機能
-4. **UIモジュール**: ポップアップとオプションページの機能
+4. **UI モジュール**: ポップアップとオプションページの機能
 5. **ユーティリティモジュール**: 汎用的なヘルパー関数群
 
 ## 3. バックグラウンドモジュール
 
-バックグラウンドモジュールはService Workerとして実行され、拡張機能のコアロジックを提供します。
+バックグラウンドモジュールは Service Worker として実行され、拡張機能のコアロジックを提供します。
 
 ### 3.1 background.js
 
 **目的**: バックグラウンドのエントリーポイント。他のモジュールを初期化し、メッセージハンドラを管理します。
 
 **インターフェース**:
+
 - `initialize()`: バックグラウンドスクリプトを初期化
 - メッセージハンドラ（`chrome.runtime.onMessage` リスナー）
 
 **依存モジュール**:
+
 - `settings.js`
 - `translator.js`
 - `cache.js`
@@ -36,34 +38,37 @@
 
 ### 3.2 translator.js
 
-**目的**: Gemini APIとの通信と翻訳処理を担当します。
+**目的**: Gemini API との通信と翻訳処理を担当します。
 
 **インターフェース**:
+
 - `translateText(text, options)`: テキストを翻訳
-- `testApiKey(apiKey)`: APIキーのテスト
+- `testApiKey(apiKey)`: API キーのテスト
 
 **依存モジュール**:
+
 - `settings.js`
 - `stats.js`
 - `cache.js`
 
 **データ構造**:
+
 ```typescript
 // 翻訳オプション
 interface TranslationOptions {
-  model?: string;           // Geminiモデル名
-  sourceLanguage?: string;  // ソース言語
-  targetLanguage?: string;  // ターゲット言語
+  model?: string; // Geminiモデル名
+  sourceLanguage?: string; // ソース言語
+  targetLanguage?: string; // ターゲット言語
 }
 
 // 翻訳結果
 interface TranslationResult {
-  success: boolean;         // 成功したか
-  translation?: string;     // 翻訳テキスト
-  model?: string;           // 使用したモデル
+  success: boolean; // 成功したか
+  translation?: string; // 翻訳テキスト
+  model?: string; // 使用したモデル
   detectedLanguage?: string; // 検出された言語
-  engine?: string;          // 翻訳エンジン名
-  error?: string;           // エラーメッセージ
+  engine?: string; // 翻訳エンジン名
+  error?: string; // エラーメッセージ
 }
 ```
 
@@ -72,29 +77,31 @@ interface TranslationResult {
 **目的**: 拡張機能全体の設定を管理します。
 
 **インターフェース**:
+
 - `initSettings()`: 設定を初期化
 - `getSettings()`: 現在の設定を取得
 - `saveSettings(newSettings)`: 設定を保存
 - `resetSettings()`: 設定をリセット
 
 **データ構造**:
+
 ```typescript
 // 設定オブジェクト
 interface Settings {
-  apiKey: string;            // Gemini APIキー
-  enabled: boolean;          // 有効/無効状態
-  geminiModel: string;       // 使用するGeminiモデル
-  translationMode: string;   // 翻訳モード
-  displayPrefix: string;     // 翻訳の接頭辞
-  textColor: string;         // テキスト色
-  accentColor: string;       // アクセント色
-  fontSize: string;          // フォントサイズ
-  useCache: boolean;         // キャッシュ使用
-  maxCacheAge: number;       // キャッシュ有効期間（時間）
-  autoToggle: boolean;       // 自動ON/OFF
+  apiKey: string; // Gemini APIキー
+  enabled: boolean; // 有効/無効状態
+  geminiModel: string; // 使用するGeminiモデル
+  translationMode: string; // 翻訳モード
+  displayPrefix: string; // 翻訳の接頭辞
+  textColor: string; // テキスト色
+  accentColor: string; // アクセント色
+  fontSize: string; // フォントサイズ
+  useCache: boolean; // キャッシュ使用
+  maxCacheAge: number; // キャッシュ有効期間（時間）
+  autoToggle: boolean; // 自動ON/OFF
   processExistingMessages: boolean; // 既存メッセージ処理
-  requestDelay: number;      // リクエスト間隔（ms）
-  debugMode: boolean;        // デバッグモード
+  requestDelay: number; // リクエスト間隔（ms）
+  debugMode: boolean; // デバッグモード
 }
 ```
 
@@ -103,6 +110,7 @@ interface Settings {
 **目的**: 翻訳キャッシュの管理を担当します。
 
 **インターフェース**:
+
 - `initCache()`: キャッシュを初期化
 - `getCachedTranslation(text, sourceLang)`: キャッシュから翻訳を取得
 - `cacheTranslation(text, sourceLang, result)`: 翻訳をキャッシュに保存
@@ -111,11 +119,12 @@ interface Settings {
 - `getCacheSize()`: キャッシュサイズを取得
 
 **データ構造**:
+
 ```typescript
 // キャッシュエントリ
 interface CacheEntry {
   translation: TranslationResult; // 翻訳結果
-  timestamp: number;             // キャッシュ時間（ミリ秒）
+  timestamp: number; // キャッシュ時間（ミリ秒）
 }
 
 // キャッシュマップ
@@ -127,24 +136,26 @@ type TranslationCache = Map<string, CacheEntry>;
 **目的**: 翻訳統計情報の管理を担当します。
 
 **インターフェース**:
+
 - `initStats()`: 統計を初期化
 - `getStats()`: 統計を取得
-- `incrementApiRequests(charCount)`: API呼び出し数とキャラクター数を増加
+- `incrementApiRequests(charCount)`: API 呼び出し数とキャラクター数を増加
 - `incrementCacheHits()`: キャッシュヒット数を増加
 - `incrementErrors()`: エラー数を増加
 - `resetStats()`: 統計をリセット
 - `saveStats()`: 統計を永続化
 
 **データ構造**:
+
 ```typescript
 // 統計オブジェクト
 interface Stats {
-  totalRequests: number;       // 総リクエスト数
-  cacheHits: number;           // キャッシュヒット数
-  apiRequests: number;         // API呼び出し数
-  errors: number;              // エラー数
+  totalRequests: number; // 総リクエスト数
+  cacheHits: number; // キャッシュヒット数
+  apiRequests: number; // API呼び出し数
+  errors: number; // エラー数
   charactersTranslated: number; // 翻訳文字数
-  lastReset: number;           // 最終リセット時間
+  lastReset: number; // 最終リセット時間
 }
 ```
 
@@ -153,6 +164,7 @@ interface Stats {
 **目的**: 翻訳リクエストのキュー管理と並行処理の制御を担当します。
 
 **インターフェース**:
+
 - `initRequestQueue()`: リクエストキューを初期化
 - `enqueueRequest(request)`: リクエストをキューに追加
 - `processQueue()`: キューを処理
@@ -160,50 +172,55 @@ interface Stats {
 - `getQueueLength()`: キューの長さを取得
 
 **データ構造**:
+
 ```typescript
 // リクエスト構造
 interface QueuedRequest {
-  text: string;           // 翻訳するテキスト
-  sourceLang: string;     // ソース言語
-  resolve: Function;      // 成功コールバック
-  reject: Function;       // エラーコールバック
-  timestamp: number;      // リクエスト時間
+  text: string; // 翻訳するテキスト
+  sourceLang: string; // ソース言語
+  resolve: Function; // 成功コールバック
+  reject: Function; // エラーコールバック
+  timestamp: number; // リクエスト時間
 }
 ```
 
 ### 3.7 urlUtils.js
 
-**目的**: URL判定ロジックを提供します。
+**目的**: URL 判定ロジックを提供します。
 
 **インターフェース**:
+
 - `isStreamPage(url)`: ストリーミングページかどうかを判定
 - `isDirectoryPage(url)`: ディレクトリページかどうかを判定
 - `isHomePage(url)`: ホームページかどうかを判定
-- `getChannelFromUrl(url)`: URLからチャンネル名を抽出
+- `getChannelFromUrl(url)`: URL からチャンネル名を抽出
 
 ## 4. コンテンツモジュール
 
-コンテンツモジュールはTwitchページに挿入され、DOMを操作します。
+コンテンツモジュールは Twitch ページに挿入され、DOM を操作します。
 
 ### 4.1 content_loader.js
 
 **目的**: コンテンツスクリプトのエントリーポイント。初期化と高レベルのフロー制御を担当します。
 
 **インターフェース**:
+
 - `initializeExtension()`: 拡張機能を初期化
 - `processMessage(messageElement)`: メッセージを処理
 - `startChatObserver()`: チャット監視を開始
-- `handleUrlChanged(url, method)`: URL変更ハンドラ
+- `handleUrlChanged(url, method)`: URL 変更ハンドラ
 
 **依存モジュール**:
+
 - `urlMonitor.js`
-- Twitchページ内のDOM要素
+- Twitch ページ内の DOM 要素
 
 ### 4.2 domManager.js
 
-**目的**: DOMの操作と要素の取得を担当します。
+**目的**: DOM の操作と要素の取得を担当します。
 
 **インターフェース**:
+
 - `findChatContainer()`: チャットコンテナを検索
 - `extractMessageText(messageElement)`: メッセージテキストを抽出
 - `displayTranslation(messageElement, translation, options)`: 翻訳を表示
@@ -214,6 +231,7 @@ interface QueuedRequest {
 **目的**: メッセージの処理ロジックを提供します。
 
 **インターフェース**:
+
 - `shouldTranslateMessage(text, mode)`: 翻訳すべきかを判定
 - `processNewMessage(messageElement)`: 新規メッセージを処理
 - `processExistingMessages()`: 既存メッセージを処理
@@ -223,6 +241,7 @@ interface QueuedRequest {
 **目的**: バックグラウンドスクリプトとの通信を担当します。
 
 **インターフェース**:
+
 - `sendMessageToBackground(action, data)`: バックグラウンドにメッセージを送信
 - `handleBackgroundMessage(message, sender, sendResponse)`: バックグラウンドからのメッセージを処理
 
@@ -230,11 +249,12 @@ interface QueuedRequest {
 
 共有モジュールは、複数のコンポーネント間で共有される機能を提供します。
 
-### 5.1 constants.js
+### 5.1 constant.js
 
 **目的**: 拡張機能全体で使用される定数を定義します。
 
 **インターフェース**:
+
 - `ACTION_TYPES`: メッセージアクション名
 - `TRANSLATION_MODES`: 翻訳モード
 - `ERROR_TYPES`: エラー種別
@@ -245,6 +265,7 @@ interface QueuedRequest {
 **目的**: メッセージングの共通機能を提供します。
 
 **インターフェース**:
+
 - `sendMessage(action, data)`: メッセージを送信
 - `sendMessageToTabs(action, data)`: アクティブなタブにメッセージを送信
 - `createResponse(success, data, error)`: レスポンスオブジェクトを作成
@@ -254,20 +275,22 @@ interface QueuedRequest {
 **目的**: 設定管理の共通機能を提供します。
 
 **インターフェース**:
+
 - `loadSettings()`: 設定を読み込み
 - `saveSettings(settings)`: 設定を保存
 - `validateSettings(settings)`: 設定を検証
 - `getDefaultSettings()`: デフォルト設定を取得
 
-## 6. UIモジュール
+## 6. UI モジュール
 
-UIモジュールは、ポップアップとオプションページのユーザーインターフェースを提供します。
+UI モジュールは、ポップアップとオプションページのユーザーインターフェースを提供します。
 
 ### 6.1 uiManager.js
 
-**目的**: UI要素の更新と管理を担当します。
+**目的**: UI 要素の更新と管理を担当します。
 
 **インターフェース**:
+
 - `updateElement(elementId, value, property)`: 要素を更新
 - `showStatusMessage(message, type, duration)`: ステータスメッセージを表示
 - `toggleVisibility(elementId, visible)`: 要素の表示/非表示を切り替え
@@ -278,6 +301,7 @@ UIモジュールは、ポップアップとオプションページのユーザ
 **目的**: フォーム処理を担当します。
 
 **インターフェース**:
+
 - `getFormValues(formSelectors)`: フォーム値を取得
 - `setFormValues(formValues)`: フォーム値を設定
 - `validateForm(formValues, schema)`: フォームを検証
@@ -289,9 +313,10 @@ UIモジュールは、ポップアップとオプションページのユーザ
 
 ### 7.1 domObserver.js
 
-**目的**: DOM変更の監視機能を提供します。
+**目的**: DOM 変更の監視機能を提供します。
 
 **インターフェース**:
+
 - `initObserver(target, config, callback)`: 監視を初期化
 - `stopObserver()`: 監視を停止
 - `isObserving()`: 監視中かどうかを返す
@@ -301,6 +326,7 @@ UIモジュールは、ポップアップとオプションページのユーザ
 **目的**: 言語判定機能を提供します。
 
 **インターフェース**:
+
 - `isJapanese(text, threshold)`: 日本語かどうかを判定
 - `isEnglish(text, threshold)`: 英語かどうかを判定
 - `detectLanguage(text)`: 言語を検出
@@ -310,6 +336,7 @@ UIモジュールは、ポップアップとオプションページのユーザ
 **目的**: ロギング機能を提供します。
 
 **インターフェース**:
+
 - `log(message, data)`: 通常ログを出力
 - `debug(message, data)`: デバッグログを出力
 - `warn(message, data)`: 警告ログを出力
@@ -318,11 +345,12 @@ UIモジュールは、ポップアップとオプションページのユーザ
 
 ### 7.4 urlMonitor.js
 
-**目的**: URL変更の監視機能を提供します。
+**目的**: URL 変更の監視機能を提供します。
 
 **インターフェース**:
-- `initUrlMonitor(options)`: URL監視を初期化
-- `stopUrlMonitor()`: URL監視を停止
+
+- `initUrlMonitor(options)`: URL 監視を初期化
+- `stopUrlMonitor()`: URL 監視を停止
 - `isMonitoring()`: 監視中かどうかを返す
 
 ### 7.5 errorHandler.js
@@ -330,6 +358,7 @@ UIモジュールは、ポップアップとオプションページのユーザ
 **目的**: エラー処理機能を提供します。
 
 **インターフェース**:
+
 - `handleError(error, context)`: エラーを処理
 - `createError(type, message, data)`: エラーを作成
 - `isRecoverableError(error)`: 回復可能なエラーかどうかを判定
@@ -338,14 +367,14 @@ UIモジュールは、ポップアップとオプションページのユーザ
 
 ### 8.1 翻訳プロセスにおけるモジュール連携
 
-1. `content_loader.js`がDOMからメッセージを検出
+1. `content_loader.js`が DOM からメッセージを検出
 2. `messageProcessor.js`がメッセージを処理
 3. `messaging.js`がバックグラウンドに翻訳リクエストを送信
 4. `background.js`がメッセージを受信し、`translator.js`に処理を委譲
-5. `translator.js`が`cache.js`をチェックし、キャッシュミスの場合はGemini APIにリクエスト
+5. `translator.js`が`cache.js`をチェックし、キャッシュミスの場合は Gemini API にリクエスト
 6. 翻訳結果を`cache.js`に保存し、`stats.js`を更新
 7. 結果を`background.js`に返し、`content_loader.js`に転送
-8. `domManager.js`が翻訳結果をDOM上に表示
+8. `domManager.js`が翻訳結果を DOM 上に表示
 
 ### 8.2 設定変更の伝播
 
@@ -430,7 +459,7 @@ interface Stats {
 - パフォーマンスプロファイリングと最適化
 - ユーザーフィードバックシステムの実装
 - 多言語サポートの拡張
-- UI改善とアクセシビリティ強化
+- UI 改善とアクセシビリティ強化
 
 ## 11. まとめ
 

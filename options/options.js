@@ -226,11 +226,17 @@ async function saveSettings() {
     // 保存成功メッセージを表示
     showStatus("設定が保存されました", "success");
     
-    // バックグラウンドに設定変更を通知
-    await chrome.runtime.sendMessage({
-      type: "settings_change",
-      data: { settings: newSettings }
-    });
+    // バックグラウンドに設定変更を通知（通信エラーは無視）
+    try {
+      await chrome.runtime.sendMessage({
+        type: "settings_change",
+        data: { settings: newSettings }
+      });
+    } catch (notificationError) {
+      // バックグラウンドへの通知が失敗しても設定は保存されているので、ログだけ残す
+      console.warn("バックグラウンドへの通知に失敗しましたが、設定は正常に保存されています:", notificationError);
+      // エラーを上位に伝播させない
+    }
     
   } catch (error) {
     console.error("設定の保存に失敗しました:", error);
@@ -313,11 +319,16 @@ async function resetSettings() {
       
       showStatus("設定を初期状態に戻しました", "success");
       
-      // バックグラウンドに設定変更を通知
-      await chrome.runtime.sendMessage({
-        type: "settings_change",
-        data: { settings: settingsToSave }
-      });
+      // バックグラウンドに設定変更を通知（通信エラーは無視）
+      try {
+        await chrome.runtime.sendMessage({
+          type: "settings_change",
+          data: { settings: settingsToSave }
+        });
+      } catch (notificationError) {
+        // バックグラウンドへの通知が失敗しても設定は保存されているので、ログだけ残す
+        console.warn("バックグラウンドへの通知に失敗しましたが、設定は正常に保存されています:", notificationError);
+      }
       
     } catch (error) {
       console.error("設定のリセットに失敗しました:", error);

@@ -160,10 +160,15 @@ export async function getSettings() {
   // 設定キャッシュが有効か確認（5秒以内）
   const now = Date.now();
   if (cachedSettings && now - lastSettingsUpdate < 5000) {
+    console.log("Gemini Twitch Translator: キャッシュから設定を使用します", cachedSettings);
     return cachedSettings;
   }
 
   try {
+    // デバッグ目的でAPI_KEY_SETの値を直接確認
+    const apiKeySetResult = await chrome.storage.sync.get([STORAGE_KEYS.API_KEY_SET]);
+    console.log("Gemini Twitch Translator: API_KEY_SETの直接確認", apiKeySetResult);
+    
     // ストレージから設定を取得
     const settings = await chrome.storage.sync.get([
       STORAGE_KEYS.TRANSLATION_MODE,
@@ -174,6 +179,8 @@ export async function getSettings() {
       STORAGE_KEYS.API_KEY_SET,
       STORAGE_KEYS.CUSTOM_SETTINGS,
     ]);
+    
+    console.log("Gemini Twitch Translator: ストレージから設定を取得しました", settings);
 
     // キャッシュを更新
     cachedSettings = settings;

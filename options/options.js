@@ -7,7 +7,7 @@
 // importするモジュールのパスは拡張機能のルートからの相対パスで指定
 import { STORAGE_KEYS, DEFAULT_SETTINGS, TRANSLATION_MODE } from "../shared/constant.js";
 import { testApiKey } from "../background/modules/api/gemini.js";
-import { secureStoreApiKey, secureRetrieveApiKey } from "../background/modules/api/keyManager.js";
+import { secureStoreApiKey, secureRetrieveApiKey, secureStoreApiKeyAndUpdateFlag } from "../background/modules/api/keyManager.js";
 
 // DOMが完全に読み込まれたら実行
 document.addEventListener("DOMContentLoaded", initialize);
@@ -178,8 +178,8 @@ async function testCurrentApiKey() {
     
     if (result.success) {
       showApiKeyStatus("APIキーは有効です", "success");
-      // APIキーセットフラグを更新
-      await chrome.storage.sync.set({ [STORAGE_KEYS.API_KEY_SET]: true });
+      // APIキーを保存してAPIキーセットフラグを更新
+      await secureStoreApiKeyAndUpdateFlag(apiKey);
       currentSettings[STORAGE_KEYS.API_KEY_SET] = true;
     } else {
       showApiKeyStatus(`APIキーテスト失敗: ${result.error || "不明なエラー"}`, "error");
@@ -214,7 +214,8 @@ async function saveSettings() {
     
     // APIキーを安全に保存
     if (newSettings[STORAGE_KEYS.API_KEY] !== undefined) {
-      await secureStoreApiKey(newSettings[STORAGE_KEYS.API_KEY]);
+      const apiKeyValue = newSettings[STORAGE_KEYS.API_KEY];
+      await secureStoreApiKeyAndUpdateFlag(apiKeyValue);
       // APIキーはAPIキー管理モジュールに保存したので、同期設定オブジェクトからは削除
       delete newSettings[STORAGE_KEYS.API_KEY];
     }

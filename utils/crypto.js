@@ -24,7 +24,10 @@ async function deriveEncryptionKey() {
   const salt = generateSalt();
 
   // キーマテリアルを生成
-  const keyMaterial = await window.crypto.subtle.importKey(
+  // cryptoオブジェクトはServiceWorker環境ではグローバル、ブラウザ環境ではwindowのプロパティ
+  const cryptoObj = typeof window !== 'undefined' ? window.crypto : crypto;
+  
+  const keyMaterial = await cryptoObj.subtle.importKey(
     "raw",
     encoder.encode(chrome.runtime.id),
     { name: "PBKDF2" },
@@ -33,7 +36,7 @@ async function deriveEncryptionKey() {
   );
 
   // 暗号化キーを導出
-  return window.crypto.subtle.deriveKey(
+  return cryptoObj.subtle.deriveKey(
     {
       name: "PBKDF2",
       salt: salt,
@@ -60,12 +63,15 @@ async function encryptApiKey(apiKey) {
 
     const encoder = new TextEncoder();
     const cryptoKey = await deriveEncryptionKey();
+    
+    // cryptoオブジェクトを取得
+    const cryptoObj = typeof window !== 'undefined' ? window.crypto : crypto;
 
     // 初期化ベクトル（IV）を生成
-    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const iv = cryptoObj.getRandomValues(new Uint8Array(12));
 
     // 暗号化を実行
-    const encryptedBuffer = await window.crypto.subtle.encrypt(
+    const encryptedBuffer = await cryptoObj.subtle.encrypt(
       {
         name: "AES-GCM",
         iv: iv,
@@ -106,9 +112,12 @@ async function decryptApiKey(encryptedData) {
     const iv = new Uint8Array(ivArray);
 
     const cryptoKey = await deriveEncryptionKey();
+    
+    // cryptoオブジェクトを取得
+    const cryptoObj = typeof window !== 'undefined' ? window.crypto : crypto;
 
     // 復号を実行
-    const decryptedBuffer = await window.crypto.subtle.decrypt(
+    const decryptedBuffer = await cryptoObj.subtle.decrypt(
       {
         name: "AES-GCM",
         iv: iv,

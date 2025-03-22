@@ -52,8 +52,10 @@ async function loadModules() {
     
     // 拡張機能の状態を取得
     const settings = await Messaging.getSettings();
+    console.log('Gemini Twitch Translator: 設定読み込み結果', settings);
     const extensionState = settings[STORAGE_KEYS.EXTENSION_STATE] || EXTENSION_STATE.DISABLED;
     const apiKeySet = settings[STORAGE_KEYS.API_KEY_SET] || false;
+    console.log('Gemini Twitch Translator: APIキー設定状態', apiKeySet, STORAGE_KEYS.API_KEY_SET);
     
     // APIキーがセットされているか確認
     if (!apiKeySet) {

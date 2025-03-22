@@ -20,6 +20,8 @@ import {
   secureRetrieveApiKey,
   hasApiKey,
   migrateApiKeyFromSync,
+  secureStoreApiKeyAndUpdateFlag,
+  syncApiKeyFlag
 } from "./modules/api/keyManager.js";
 
 // キャッシュの初期化
@@ -47,13 +49,8 @@ async function loadSettings() {
       ...result,
     };
 
-    // 暗号化されたAPIキーが存在するか確認
-    const hasSecureApiKey = await hasApiKey();
-
-    if (!hasSecureApiKey) {
-      // 暗号化されたAPIキーが存在しない場合、古いストレージから移行
-      await migrateApiKeyFromSync();
-    }
+    // APIキーの設定とフラグの同期を完全する
+    await syncApiKeyFlag();
 
     console.log("Settings loaded:", settings);
   } catch (error) {
@@ -85,10 +82,21 @@ async function initialize() {
   await loadSettings();
   
   // APIキーの存在確認とAPI_KEY_SETフラグの同期
-  const hasKeyResult = await hasApiKey();
-  if (hasKeyResult !== settings[STORAGE_KEYS.API_KEY_SET]) {
-    await chrome.storage.sync.set({ [STORAGE_KEYS.API_KEY_SET]: hasKeyResult });
-    settings[STORAGE_KEYS.API_KEY_SET] = hasKeyResult;
+  const hasKeyResult = await syncApiKeyFlag();
+  console.log(`初期化時のAPIキー確認結果: ${hasKeyResult}`);
+  
+  // 現在の設定に反映させる
+  settings[STORAGE_KEYS.API_KEY_SET] = hasKeyResult;
+  
+  // 必要なら古いストレージからの移行を試行
+  if (!hasKeyResult) {
+    // APIキーがないか確認できない場合は移行を試行
+    const migrated = await migrateApiKeyFromSync();
+    if (migrated) {
+      // 移行成功した場合は再度同期
+      const newKeyResult = await syncApiKeyFlag();
+      settings[STORAGE_KEYS.API_KEY_SET] = newKeyResult;
+    }
   }
 
   // インストール/アップデート時の処理
@@ -283,14 +291,11 @@ function findOldestCacheEntry() {
 async function handleApiKeyChange(message) {
   const { apiKey } = message.payload || message.data;
 
-  // 新しいAPIキーを保存
-  await secureStoreApiKey(apiKey);
+  // 新しいAPIキーを保存し、フラグも更新
+  await secureStoreApiKeyAndUpdateFlag(apiKey);
 
   // メモリ内のAPIキーを更新
   inMemoryApiKey = apiKey;
-  
-  // API_KEY_SETフラグを更新
-  await chrome.storage.sync.set({ [STORAGE_KEYS.API_KEY_SET]: !!apiKey });
 
   // キャッシュをクリア
   translationCache.clear();

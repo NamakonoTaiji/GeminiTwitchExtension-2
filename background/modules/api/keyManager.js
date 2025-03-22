@@ -105,9 +105,64 @@ async function migrateApiKeyFromSync() {
   }
 }
 
+/**
+ * APIキーを安全に保存し、API_KEY_SETフラグも同時に更新する
+ * @param {string} apiKey - 保存するAPIキー
+ * @returns {Promise<void>}
+ */
+async function secureStoreApiKeyAndUpdateFlag(apiKey) {
+  try {
+    // APIキーを保存
+    await secureStoreApiKey(apiKey);
+    
+    // API_KEY_SETフラグを更新
+    const isSet = !!apiKey;
+    await chrome.storage.sync.set({ [STORAGE_KEYS.API_KEY_SET]: isSet });
+    
+    console.log(`APIキーを保存し、API_KEY_SETフラグを${isSet ? '有効' : '無効'}に設定しました`);
+    
+    // フラグの状態を確認する
+    const checkResult = await chrome.storage.sync.get([STORAGE_KEYS.API_KEY_SET]);
+    console.log('API_KEY_SETフラグ確認結果:', checkResult);
+  } catch (error) {
+    console.error("APIキーの保存とフラグ更新に失敗しました:", error);
+    throw error;
+  }
+}
+
+/**
+ * APIキーの存在状態とAPI_KEY_SETフラグを同期する
+ * @returns {Promise<boolean>} - 同期後のAPIキー設定状態
+ */
+async function syncApiKeyFlag() {
+  try {
+    // 実際のAPIキーの存在状態を確認
+    const hasKeyResult = await hasApiKey();
+    
+    // 現在のフラグ状態を取得
+    const settings = await chrome.storage.sync.get([STORAGE_KEYS.API_KEY_SET]);
+    const currentFlag = settings[STORAGE_KEYS.API_KEY_SET] || false;
+    
+    console.log(`APIキーフラグ同期 - 実際: ${hasKeyResult}, 設定値: ${currentFlag}`);
+    
+    // 状態が異なる場合は更新
+    if (hasKeyResult !== currentFlag) {
+      await chrome.storage.sync.set({ [STORAGE_KEYS.API_KEY_SET]: hasKeyResult });
+      console.log(`API_KEY_SETフラグを${hasKeyResult}に更新しました`);
+    }
+    
+    return hasKeyResult;
+  } catch (error) {
+    console.error("APIキーフラグの同期に失敗しました:", error);
+    return false;
+  }
+}
+
 export {
   secureStoreApiKey,
   secureRetrieveApiKey,
   hasApiKey,
   migrateApiKeyFromSync,
+  secureStoreApiKeyAndUpdateFlag,
+  syncApiKeyFlag
 };

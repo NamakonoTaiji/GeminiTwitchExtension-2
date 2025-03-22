@@ -178,8 +178,14 @@ async function testCurrentApiKey() {
     
     if (result.success) {
       showApiKeyStatus("APIキーは有効です", "success");
+      // APIキーセットフラグを更新
+      await chrome.storage.sync.set({ [STORAGE_KEYS.API_KEY_SET]: true });
+      currentSettings[STORAGE_KEYS.API_KEY_SET] = true;
     } else {
       showApiKeyStatus(`APIキーテスト失敗: ${result.error || "不明なエラー"}`, "error");
+      // APIキーセットフラグを更新
+      await chrome.storage.sync.set({ [STORAGE_KEYS.API_KEY_SET]: false });
+      currentSettings[STORAGE_KEYS.API_KEY_SET] = false;
     }
   } catch (error) {
     console.error("APIキーテストエラー:", error);

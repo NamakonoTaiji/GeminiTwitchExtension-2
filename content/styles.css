@@ -1,0 +1,78 @@
+/* 
+ * Gemini Twitch Translator スタイルシート
+ */
+
+/* 翻訳テキスト用のスタイル */
+.gemini-translation {
+  color: #6c757d;
+  font-size: 0.9em;
+  margin-top: 2px;
+  padding: 2px 0;
+  word-break: break-word;
+  transition: color 0.2s ease;
+}
+
+/* ユーザーオプションで変更可能なスタイル */
+.gemini-translation.light {
+  color: #6c757d;
+  background-color: transparent;
+}
+
+.gemini-translation.dark {
+  color: #a0a0a0;
+  background-color: transparent;
+}
+
+.gemini-translation.twitch-light {
+  color: #9147ff;
+  background-color: transparent;
+}
+
+.gemini-translation.twitch-dark {
+  color: #bf94ff;
+  background-color: transparent;
+}
+
+/* エラーメッセージのスタイル */
+.gemini-translator-error {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(220, 53, 69, 0.9);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  z-index: 9999;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  max-width: 300px;
+  animation: gemini-fade-in 0.3s ease;
+}
+
+/* アニメーション */
+@keyframes gemini-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 翻訳処理中の表示 */
+.gemini-translating {
+  color: #6c757d;
+  font-style: italic;
+  display: inline-block;
+  overflow: hidden;
+  position: relative;
+}
+
+.gemini-translating:after {
+  content: "...";
+  position: absolute;
+  animation: gemini-ellipsis 1.5s infinite;
+}
+
+@keyframes gemini-ellipsis {
+  0% { opacity: 0; right: 0; }
+  33% { opacity: 1; right: -4px; }
+  66% { opacity: 1; right: -8px; }
+  100% { opacity: 0; right: -12px; }
+}

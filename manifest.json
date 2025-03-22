@@ -44,7 +44,10 @@
         "tests/*",
         "utils/*",
         "background/modules/*/*",
-        "shared/*"
+        "shared/*",
+        "content/styles.css",
+        "content/content_loader.js",
+        "content/modules/*"
       ],
       "matches": [
         "<all_urls>"

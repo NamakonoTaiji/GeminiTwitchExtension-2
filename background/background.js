@@ -83,6 +83,13 @@ function clearApiKeyFromMemory() {
  */
 async function initialize() {
   await loadSettings();
+  
+  // APIキーの存在確認とAPI_KEY_SETフラグの同期
+  const hasKeyResult = await hasApiKey();
+  if (hasKeyResult !== settings[STORAGE_KEYS.API_KEY_SET]) {
+    await chrome.storage.sync.set({ [STORAGE_KEYS.API_KEY_SET]: hasKeyResult });
+    settings[STORAGE_KEYS.API_KEY_SET] = hasKeyResult;
+  }
 
   // インストール/アップデート時の処理
   chrome.runtime.onInstalled.addListener(({ reason }) => {
@@ -143,13 +150,16 @@ function setupMessageListeners() {
  * @param {Function} sendResponse - レスポンスコールバック
  */
 async function handleTranslationRequest(message, sender, sendResponse) {
-  const { text, messageId } = message.data;
+  const { text, messageId } = message.payload || message.data;
 
   if (!text || !messageId) {
     sendResponse({
-      success: false,
-      error: "無効なリクエスト：テキストまたはメッセージIDが不足しています",
-      messageId,
+      type: MESSAGE_TYPE.TRANSLATION_RESPONSE,
+      payload: {
+        success: false,
+        error: "無効なリクエスト：テキストまたはメッセージIDが不足しています",
+        messageId,
+      }
     });
     return;
   }
@@ -157,21 +167,26 @@ async function handleTranslationRequest(message, sender, sendResponse) {
   // 拡張機能が無効の場合
   if (settings[STORAGE_KEYS.EXTENSION_STATE] !== EXTENSION_STATE.ENABLED) {
     sendResponse({
-      success: false,
-      error: "拡張機能は現在無効になっています",
-      messageId,
+      type: MESSAGE_TYPE.TRANSLATION_RESPONSE,
+      payload: {
+        success: false,
+        error: "拡張機能は現在無効になっています",
+        messageId,
+      }
     });
     return;
   }
 
   // APIキーが設定されていない場合
-  const apiKey = settings[STORAGE_KEYS.API_KEY];
-  if (!apiKey) {
+  const apiKeySet = settings[STORAGE_KEYS.API_KEY_SET];
+  if (!apiKeySet) {
     sendResponse({
-      success: false,
-      error:
-        "APIキーが設定されていません。オプションページで設定してください。",
-      messageId,
+      type: MESSAGE_TYPE.TRANSLATION_RESPONSE,
+      payload: {
+        success: false,
+        error: "APIキーが設定されていません。オプションページで設定してください。",
+        messageId,
+      }
     });
     return;
   }
@@ -181,11 +196,14 @@ async function handleTranslationRequest(message, sender, sendResponse) {
   if (cacheEnabled && translationCache.has(text)) {
     const cachedResult = translationCache.get(text);
     sendResponse({
-      success: true,
-      translatedText: cachedResult.translatedText,
-      originalText: text,
-      messageId,
-      fromCache: true,
+      type: MESSAGE_TYPE.TRANSLATION_RESPONSE,
+      payload: {
+        success: true,
+        translatedText: cachedResult.translatedText,
+        originalText: text,
+        messageId,
+        fromCache: true,
+      }
     });
     return;
   }
@@ -217,8 +235,11 @@ async function handleTranslationRequest(message, sender, sendResponse) {
 
     // メッセージIDを追加してレスポンスを送信
     sendResponse({
-      ...result,
-      messageId,
+      type: MESSAGE_TYPE.TRANSLATION_RESPONSE,
+      payload: {
+        ...result,
+        messageId,
+      }
     });
   } catch (error) {
     console.error("Translation error:", error);
@@ -227,9 +248,12 @@ async function handleTranslationRequest(message, sender, sendResponse) {
     clearApiKeyFromMemory();
 
     sendResponse({
-      success: false,
-      error: `翻訳処理エラー: ${error.message}`,
-      messageId,
+      type: MESSAGE_TYPE.TRANSLATION_RESPONSE,
+      payload: {
+        success: false,
+        error: `翻訳処理エラー: ${error.message}`,
+        messageId,
+      }
     });
   }
 }
@@ -257,13 +281,16 @@ function findOldestCacheEntry() {
  * @param {Object} message - キー変更メッセージ
  */
 async function handleApiKeyChange(message) {
-  const { apiKey } = message.data;
+  const { apiKey } = message.payload || message.data;
 
   // 新しいAPIキーを保存
   await secureStoreApiKey(apiKey);
 
   // メモリ内のAPIキーを更新
   inMemoryApiKey = apiKey;
+  
+  // API_KEY_SETフラグを更新
+  await chrome.storage.sync.set({ [STORAGE_KEYS.API_KEY_SET]: !!apiKey });
 
   // キャッシュをクリア
   translationCache.clear();
@@ -274,7 +301,7 @@ async function handleApiKeyChange(message) {
  * @param {Object} message - 状態変更メッセージ
  */
 async function handleExtensionStateChange(message) {
-  const { state } = message.data;
+  const { state } = message.payload || message.data;
 
   if (Object.values(EXTENSION_STATE).includes(state)) {
     // 新しい状態を保存
@@ -290,7 +317,7 @@ async function handleExtensionStateChange(message) {
  * @param {Object} message - 設定変更メッセージ
  */
 async function handleSettingsChange(message) {
-  const { settings: newSettings } = message.data;
+  const { settings: newSettings } = message.payload || message.data;
 
   // 新しい設定を保存
   await chrome.storage.sync.set(newSettings);
@@ -340,12 +367,15 @@ async function handleStatusRequest(sendResponse) {
   await loadSettings();
 
   sendResponse({
-    success: true,
-    state: settings[STORAGE_KEYS.EXTENSION_STATE],
-    hasApiKey: !!settings[STORAGE_KEYS.API_KEY],
-    translationMode: settings[STORAGE_KEYS.TRANSLATION_MODE],
-    cacheSize: translationCache.size,
-    cacheEnabled: settings[STORAGE_KEYS.CACHE_SETTINGS]?.enabled,
+    type: MESSAGE_TYPE.STATUS_RESPONSE,
+    payload: {
+      success: true,
+      state: settings[STORAGE_KEYS.EXTENSION_STATE],
+      hasApiKey: !!settings[STORAGE_KEYS.API_KEY_SET],
+      translationMode: settings[STORAGE_KEYS.TRANSLATION_MODE],
+      cacheSize: translationCache.size,
+      cacheEnabled: settings[STORAGE_KEYS.CACHE_SETTINGS]?.enabled,
+    }
   });
 }
 

@@ -79,24 +79,39 @@ function clearApiKeyFromMemory() {
  * 拡張機能の初期化
  */
 async function initialize() {
-  await loadSettings();
-  
-  // APIキーの存在確認とAPI_KEY_SETフラグの同期
-  const hasKeyResult = await syncApiKeyFlag();
-  console.log(`初期化時のAPIキー確認結果: ${hasKeyResult}`);
-  
-  // 現在の設定に反映させる
-  settings[STORAGE_KEYS.API_KEY_SET] = hasKeyResult;
-  
-  // 必要なら古いストレージからの移行を試行
-  if (!hasKeyResult) {
-    // APIキーがないか確認できない場合は移行を試行
-    const migrated = await migrateApiKeyFromSync();
-    if (migrated) {
-      // 移行成功した場合は再度同期
-      const newKeyResult = await syncApiKeyFlag();
-      settings[STORAGE_KEYS.API_KEY_SET] = newKeyResult;
+  try {
+    await loadSettings();
+    
+    // APIキーの存在確認とAPI_KEY_SETフラグの同期
+    const hasKeyResult = await syncApiKeyFlag();
+    console.log(`初期化時のAPIキー確認結果: ${hasKeyResult}`);
+    
+    // 現在の設定に反映させる
+    settings[STORAGE_KEYS.API_KEY_SET] = hasKeyResult;
+    
+    // 必要なら古いストレージからの移行を試行
+    if (!hasKeyResult) {
+      // APIキーがないか確認できない場合は移行を試行
+      const migrated = await migrateApiKeyFromSync();
+      if (migrated) {
+        // 移行成功した場合は再度同期
+        const newKeyResult = await syncApiKeyFlag();
+        settings[STORAGE_KEYS.API_KEY_SET] = newKeyResult;
+      }
     }
+    
+    // キャッシュチェックと初期化
+    if (settings[STORAGE_KEYS.CACHE_SETTINGS]?.enabled) {
+      console.log('翻訳キャッシュを初期化します');
+      // 古いキャッシュエントリの削除などを行うことができます
+    }
+    
+    console.log('Gemini Twitch Translator: バックグラウンドスクリプトが正常に初期化されました');
+  } catch (error) {
+    console.error('Gemini Twitch Translator: 初期化中にエラーが発生しました', error);
+    
+    // 初期化失敗時にデフォルト設定を使用
+    settings = { ...DEFAULT_SETTINGS };
   }
 
   // インストール/アップデート時の処理

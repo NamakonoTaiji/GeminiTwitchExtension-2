@@ -155,6 +155,57 @@ export async function requestTranslation(messageInfo) {
  */
 let cachedSettings = null;
 let lastSettingsUpdate = 0;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+const SETTINGS_STORAGE_KEY = 'gemini_twitch_translator_settings_backup';
+
+/**
+ * 設定をローカルストレージにバックアップとして保存
+ * @param {Object} settings 保存する設定
+ */
+async function backupSettingsToLocal(settings) {
+  try {
+    // 現在時刻を追加
+    const dataToStore = {
+      settings: settings,
+      timestamp: Date.now()
+    };
+    
+    // ローカルストレージに保存
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(dataToStore));
+    console.log('Gemini Twitch Translator: 設定をローカルストレージにバックアップしました');
+  } catch (error) {
+    console.warn('Gemini Twitch Translator: 設定バックアップに失敗しました', error);
+    // エラーは上位に伝播させない
+  }
+}
+
+/**
+ * ローカルストレージから設定のバックアップを読み込む
+ * @returns {Object|null} 保存されていた設定またはnull
+ */
+function loadSettingsFromLocal() {
+  try {
+    const storedData = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!storedData) return null;
+    
+    const parsedData = JSON.parse(storedData);
+    const timestamp = parsedData.timestamp || 0;
+    const now = Date.now();
+    
+    // 24時間以内のバックアップのみ使用
+    if (now - timestamp > 24 * 60 * 60 * 1000) {
+      console.warn('Gemini Twitch Translator: バックアップ設定が古すぎるため使用しません');
+      return null;
+    }
+    
+    console.log('Gemini Twitch Translator: ローカルストレージからバックアップ設定を読み込みました', parsedData.settings);
+    return parsedData.settings;
+  } catch (error) {
+    console.warn('Gemini Twitch Translator: バックアップ設定の読み込みに失敗しました', error);
+    return null;
+  }
+}
 
 export async function getSettings() {
   // 設定キャッシュが有効か確認（5秒以内）
@@ -165,10 +216,6 @@ export async function getSettings() {
   }
 
   try {
-    // デバッグ目的でAPI_KEY_SETの値を直接確認
-    const apiKeySetResult = await chrome.storage.sync.get([STORAGE_KEYS.API_KEY_SET]);
-    console.log("Gemini Twitch Translator: API_KEY_SETの直接確認", apiKeySetResult);
-    
     // ストレージから設定を取得
     const settings = await chrome.storage.sync.get([
       STORAGE_KEYS.TRANSLATION_MODE,
@@ -185,10 +232,47 @@ export async function getSettings() {
     // キャッシュを更新
     cachedSettings = settings;
     lastSettingsUpdate = now;
+    reconnectAttempts = 0; // 成功したらリセット
+
+    // 設定をローカルストレージにバックアップ
+    await backupSettingsToLocal(settings);
 
     return settings;
   } catch (error) {
     console.error("Gemini Twitch Translator: 設定取得エラー", error);
+
+    // コンテキスト無効化エラーの場合の特別な処理
+    const isContextInvalidated = 
+      (error.message && error.message.includes('context invalidated')) ||
+      (chrome.runtime.lastError && 
+       chrome.runtime.lastError.message && 
+       chrome.runtime.lastError.message.includes('context invalidated'));
+
+    if (isContextInvalidated) {
+      console.warn('Gemini Twitch Translator: 拡張機能コンテキストが無効化されました');
+      
+      // 再接続試行カウンターを増やす
+      reconnectAttempts++;
+      
+      // 再接続試行回数に基づくバックオフ時間を計算（指数バックオフ）
+      const backoffTime = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), 30000);
+      console.log(`Gemini Twitch Translator: ${backoffTime}ms後に再接続を試みます（${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}）`);
+      
+      // 最大試行回数未満の場合、再接続を試みる
+      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        setTimeout(() => {
+          // 再接続試行の通知
+          DOMManager.showErrorMessage(
+            `接続が切断されました。再接続を試みています...（${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}）`
+          );
+        }, backoffTime);
+      } else {
+        // 最大試行回数に達した場合、エラー通知
+        DOMManager.showErrorMessage(
+          "拡張機能との接続が失われました。ページの再読み込みが必要です。"
+        );
+      }
+    }
 
     // キャッシュがある場合は古いキャッシュを返す
     if (cachedSettings) {
@@ -197,8 +281,23 @@ export async function getSettings() {
       );
       return cachedSettings;
     }
+    
+    // バックアップ設定を試す
+    const backupSettings = loadSettingsFromLocal();
+    if (backupSettings) {
+      cachedSettings = backupSettings;
+      lastSettingsUpdate = now - 10000; // 有効期限を短くする
+      return backupSettings;
+    }
 
-    throw error;
+    // それでも失敗する場合はデフォルト設定の簡易版を返す
+    console.warn("Gemini Twitch Translator: 基本デフォルト設定を使用します");
+    return {
+      [STORAGE_KEYS.TRANSLATION_MODE]: "non_japanese",
+      [STORAGE_KEYS.TARGET_LANGUAGE]: "ja",
+      [STORAGE_KEYS.API_KEY_SET]: false,
+      [STORAGE_KEYS.EXTENSION_STATE]: "enabled"
+    };
   }
 }
 

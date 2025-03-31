@@ -81,13 +81,13 @@ Gemini Twitch Translator は、Twitch のライブチャットメッセージを
 
 ### プロジェクト構造
 
-gemini-twitch-translator/
-├── background/ # バックグラウンドスクリプト
-├── content/ # コンテンツスクリプト
-├── shared/ # 共有モジュール
-├── utils/ # ユーティリティ
-├── popup/ # ポップアップ UI
-├── options/ # オプションページ
-├── icons/ # アイコン
-├── docs/ # ドキュメント
-└── manifest.json # 拡張機能マニフェスト
+gemini-twitch-translator/<br>
+├── background/ # バックグラウンドスクリプト<br>
+├── content/ # コンテンツスクリプト<br>
+├── shared/ # 共有モジュール<br>
+├── utils/ # ユーティリティ<br>
+├── popup/ # ポップアップ UI<br>
+├── options/ # オプションページ<br>
+├── icons/ # アイコン<br>
+├── docs/ # ドキュメント<br>
+└── manifest.json # 拡張機能マニフェスト<br>

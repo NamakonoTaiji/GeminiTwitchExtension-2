@@ -61,7 +61,7 @@ Gemini Twitch Translator は、Twitch のライブチャットメッセージを
 
 ## プライバシーとセキュリティ
 
-- API キーは安全に暗号化されてローカルストレージに保存されます
+- API キーは暗号化されてブラウザのローカルストレージに保存されます。これは不意にローカルストレージを開いてしまったときにAPIキーが平文のまま露出されないようにする対策です
 - チャットメッセージは Gemini API にのみ送信され、第三者と共有されることはありません
 - 個人識別情報（PII）は収集・保存されません
 
@@ -69,15 +69,13 @@ Gemini Twitch Translator は、Twitch のライブチャットメッセージを
 
 ### 必要環境
 
-- Node.js (最新の LTS 版)
 - Chrome ブラウザ
 - Gemini API キー
 
 ### ローカル開発環境のセットアップ
 
 1. リポジトリをクローン: `git clone https://github.com/yourusername/gemini-twitch-translator.git`
-2. 依存パッケージのインストール: `npm install`
-3. Gemini API キーを取得して設定
+2. Gemini API キーを取得して設定
 
 ### プロジェクト構造
 
